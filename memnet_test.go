@@ -31,6 +31,14 @@ import (
 	"time"
 )
 
+type lnOptions struct {
+	c int
+	t int
+	a string
+}
+
+var dLnOptn = lnOptions{1, 10, "0.0.0.0:4434"}
+
 const (
 	errIOMismatched   = "(input) %s != %s (output)"
 	errRWBytes        = "readBytes is %d, but writeBytes is %d"
@@ -122,7 +130,7 @@ func doReadWrite(rw io.ReadWriter) error {
 }
 
 func memConnServe() (net.Conn, net.Conn, error) {
-	ln, err := Listen(1, 10)
+	ln, err := Listen(dLnOptn.c, dLnOptn.t, dLnOptn.a)
 	if err != nil {
 		return nil, nil, fmt.Errorf(errMemListener, err.Error())
 	}
@@ -161,8 +169,15 @@ func TestRingBuffClosed(t *testing.T) {
 	}
 }
 
+func TestListenerAddr(t *testing.T) {
+	ln, _ := Listen(dLnOptn.c, dLnOptn.t, dLnOptn.a)
+	if ln.Addr().String() != dLnOptn.a {
+		t.Fatalf("ln.Addr() = %v, want %v", ln.Addr().String(), dLnOptn.a)
+	}
+}
+
 func TestListenerClosed(t *testing.T) {
-	ln, err := Listen(1, 10)
+	ln, err := Listen(dLnOptn.c, dLnOptn.t, dLnOptn.a)
 	if err != nil {
 		t.Fatalf(errMemListener, err.Error())
 	}

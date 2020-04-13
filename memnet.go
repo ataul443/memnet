@@ -8,11 +8,13 @@ import (
 	"time"
 )
 
-type addr struct{}
+type addr struct {
+	address string
+}
 
-func (a addr) Network() string { return "memland" }
+func (a addr) Network() string { return a.address }
 
-func (a addr) String() string { return "memland" }
+func (a addr) String() string { return a.address }
 
 type netErrTimeout struct {
 	error
@@ -300,6 +302,7 @@ type Listener struct {
 	bsz    int
 	connCh chan net.Conn
 	done   chan struct{}
+	addr   net.Addr
 }
 
 func (l *Listener) Close() error {
@@ -324,7 +327,7 @@ func (l *Listener) Accept() (net.Conn, error) {
 	}
 }
 
-func (l *Listener) Addr() net.Addr { return addr{} }
+func (l *Listener) Addr() net.Addr { return l.addr }
 
 // Dial returns a client side connection to the attached to thre reciever.
 func (l *Listener) Dial() (net.Conn, error) {
@@ -343,12 +346,13 @@ func (l *Listener) Dial() (net.Conn, error) {
 // Listen returns a *Listener which can queue connQSize number of
 // new connections till it blocks the call to Accept() and have
 //transport buffer size of transBuffSize
-func Listen(connQSize, transBuffSize int) (*Listener, error) {
+func Listen(connQSize, transBuffSize int, _addr string) (*Listener, error) {
 	l := &Listener{
 		sync.Mutex{},
 		transBuffSize,
 		make(chan net.Conn, connQSize),
 		make(chan struct{}),
+		addr{_addr},
 	}
 
 	return l, nil
